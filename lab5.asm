@@ -184,7 +184,7 @@ endp
 	wp equ word ptr
 	len dw 0
 	border_size db 2 dup(0)
-	buffer db 1024 dup('$')
+	buffer db 1000 dup('$')
 	f_name db 'file.txt',0	
 	msg1 db 0Dh, 0Ah,"Vvedite dlinu stroki",0Dh, 0Ah,'$'
 	msg2 db 0Dh, 0Ah,"Chislo slov = ",'$'
