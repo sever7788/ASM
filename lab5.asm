@@ -1,4 +1,4 @@
-	in_sym macro 
+in_sym macro 
     mov ah, 01h
     int 21h
     sub al, '0'
@@ -59,17 +59,15 @@ params_ended:
 skip3:
 	xor si, si
 	mov dx, offset f_name
-	mov ah, 3Dh
+	mov ah, 3Dh		;открытие файла
 	mov al, 00h
 	int 21h
-	jnc skip4
+	jnc input_number
 	lea dx, msg3
 	out_str
 	jmp exit
-	skip4:
-	mov bx, ax
-	mov di, 01
 input_number: 
+    mov bx, ax
     mov al, byte ptr len[0]
     mov bp, 10
     mul bp
