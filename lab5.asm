@@ -64,65 +64,54 @@ skip1:
 	mov ah, 3Dh
 	mov al, 00h
 	int 21h
-	jnc input_number
+	jnc input_num
 	lea dx, msg3
 	out_str
 	jmp exit
 	
-input_number: 
+input_num: 
 	mov cx, ax         ;сохраняем идентификатор файла в cx
 	pop ax
 	pop bx
 	push ax
 	push cx
-	mov bx, word ptr [bx]
-	mov al, bl
-	sub al, '0'
-    mov bp, 10
-    mul bp
-    mov bp,word ptr ax
-    mov al, bh
-	sub al, '0'
-    add bp, ax
-    mov len, bp
-	cmp bp, 50
-	jnge skip5
-	lea dx, msg4
+	
+	xor     ax,ax                   
+    mov     di, bx               
+    xor     ch,ch                   
+    mov     cl, 5           
+    mov     si,10                   
+    xor     bh,bh
+    call input_number                   
+    
+    mov     len, ax
+	cmp bp, 333
+	jne skip5
+	lea dx, msg6
 	out_str
 	jmp exit
 skip5:
 	pop bx				;идентификатор файла в bx
-    mov bp, 0	
+	xor bp, bp
+	xor si, si
 read_data:
-	mov cx, 1000
+	mov cx, 10000
 	mov dx,offset buffer 
 	mov ah,3Fh 
 	int 21h 
 	jc close_file 
 	mov cx,ax 
 	jcxz close_file
-	call find_word 
+	call find_str 
 	jmp short read_data 
 	
 close_file:
 	mov ah,3Eh 
 	int 21h
 	
-@:
-    cmp bp, 0
-    je output_number
-	mov dx, word ptr border_size
-	inc dx
-	cmp dx, len
-	jge	output_number
-    add si, 1
-	adc star, 0
-	
 output_number:	
 	lea dx, msg2
 	out_str
-	mov ax, star
-	call ShowUInt16
 	mov ax, si
 	call ShowUInt16
 	jmp exit
@@ -158,68 +147,71 @@ new_line proc
 ret
 endp
 
-find_word proc
+input_number proc
+m1:
+	cmp  byte ptr [di], 0
+	je end_inp_num
+    mul     si                      
+    mov     bl,[di] 
+    cmp     bl, 30h                
+    jl      err_msg
+    cmp     bl, 39h                
+    jg      err_msg                  
+    sub     bl,30h                  
+    add     ax,bx                   
+    inc     di                      
+    loop    m1 
+end_inp_num:
+    ret
+jmp skip3	
+err_msg:
+	mov bp, 333
+	ret	
+skip3:
+endp
+
+find_str proc
     push di
     push dx
     push cx
-    
-    xor di, di
-    mov dx, word ptr border_size	;длина слова
 	
-	cmp bp, 1
-	jne loop1
-	inc dx
-	xor bp, bp
+	mov dx, wp border_size
+	lea di, buffer 
 loop1:
-    cmp buffer[di], ' '
-    je next1
-    cmp buffer[di], 0Dh
-    je next1 
-    cmp buffer[di], 0Ah
+	cmp byte ptr [di], 0Dh
 	je next1
-	
+	cmp byte ptr [di], 0Ah
+	je next
 	inc dx
-	cmp cx, 2
-	jne next2
-	mov bp, 1
-	jmp next2
-next2:
-	cmp buffer[di+1], ' '
-    je skip2
-    cmp buffer[di+1], 0Dh
-    je skip2 
-    cmp buffer[di+1], 0Ah
-	je skip2
-	jmp next1
-skip2:
-	xor bp, bp
-	mov ax, dx
-	xor dx,dx
-	cmp ax, word ptr len
-	jge next1
-	add si, 1
-	adc star, 0
+	jmp next
 next1:
+	mov ax, dx
+	xor dx, dx
+	cmp ax, len
+	jge next
+	cmp ax, 0
+	je next
+	inc si
+next:
 	inc di
-    loop loop1
-    
-    mov word ptr border_size, dx   
-    
+loop loop1
+    mov word ptr border_size, dx
+	xor ax,ax
     pop cx
     pop dx
     pop di  
 ret    
 endp
-	star dw 0
 	argc dw 0 
 	wp equ word ptr
 	len dw 0
 	border_size dw 0
-	buffer db 1000 dup('$')
-	f_name db 'file.txt',0
+	buffer db 10000 dup(0)
+	;f_name db 'file.txt',0
 	msg1 db 0Dh, 0Ah,"Vvedite dlinu stroki",0Dh, 0Ah,'$'
-	msg2 db 0Dh, 0Ah,"Chislo slov = ",'$'
+	msg2 db 0Dh, 0Ah,"Chislo strok = ",'$'
 	msg3 db 0Dh, 0Ah,"Fail ne naiden!",0Dh, 0Ah,'$'
 	msg4 db 0Dh, 0Ah,"Makcimalnaya dlina stroki < 50 symb!!",0Dh, 0Ah,'$'
 	msg5 db 0Dh, 0Ah,"Kol-vo argumentov dolzhno byt 2!!!",0Dh, 0Ah,'$'
+	msg6 db 0Dh, 0Ah,"Invalid argument!!!",0Dh, 0Ah,'$'
 end start
